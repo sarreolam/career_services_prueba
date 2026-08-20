@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Base de Datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-usuario_db}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password_secreto}
+      POSTGRES_DB: ${POSTGRES_DB:-mi_base_datos}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-usuario_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Servidor Backend (Node.js + Prisma)
+  backend:
+    build: ./backend
+    container_name: node_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-usuario_db}:${POSTGRES_PASSWORD:-password_secreto}@db:5432/${POSTGRES_DB:-mi_base_datos}?schema=public
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  # Cliente Frontend (React + Vite)
+  frontend:
+    build: ./frontend
+    container_name: react_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
