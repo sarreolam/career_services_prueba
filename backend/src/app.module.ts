@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { VacantesModule } from './vacantes/vacantes.module';
 
 @Module({
   imports: [
@@ -19,8 +20,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       migrations: [__dirname + '/migrations/*{.js,.ts}'],
       migrationsRun: true,
     }),
+    VacantesModule
   ],
   controllers: [AppController],
   providers: [AppService],
+  
 })
 export class AppModule {}
