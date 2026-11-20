@@ -1,4 +1,25 @@
+# Dependencias
 node_modules/
+
+# Compilados
 dist/
+build/
+
+# Variables de entorno (contienen contrasenas)
 .env
+.env.local
+.env.production
+frontend/.env.production
+
+# Logs
 *.log
+npm-debug.log*
+
+# Editores
+.vscode/
+.idea/
+.DS_Store
+
+# Respaldos de base de datos
+*.sql
+*.dump

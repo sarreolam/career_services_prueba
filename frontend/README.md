@@ -1,75 +1,61 @@
-# React + TypeScript + Vite
+# Frontend — Career Services UP (borrador)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Vite + React 19 + TypeScript + Tailwind CSS v4 + React Router 7.
+Basado en el Figma "v2 · Borrador corregido" y el Manual de Marca UP.
 
-Currently, two official plugins are available:
+## Correr con Docker
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Como se agregaron dependencias nuevas (`react-router-dom` y las fuentes `@fontsource/*`),
+hay que reconstruir el contenedor y renovar el volumen de `node_modules`:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+docker compose up -d --build -V frontend
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Luego abre http://localhost:5173
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Estructura
 
 ```
+src/
+  index.css            Tokens de marca (colores, tipografías) en @theme de Tailwind
+  main.tsx             Fuentes + BrowserRouter
+  App.tsx              Rutas
+  components/          Header, Footer, Boton, TarjetaEvento, bloques reutilizables, marca (tahalí, logo provisional)
+  pages/               Una página por sección del documento de arquitectura
+  data/                Contenido estático (tipos.ts define la forma de cada dato)
+  lib/api.ts           Helper para llamar al backend (aún no se usa)
+```
+
+## Rutas
+
+| Ruta | Página |
+|---|---|
+| `/` | Inicio |
+| `/career-services` | Career Services |
+| `/servicios` | Servicios |
+| `/alumnos-egresados?vista=alumnos\|egresados` | Alumnos y Egresados (filtro de entrada) |
+| `/empresas` | Empresas |
+| `/eventos` | Eventos y Experiencias (filtros funcionales) |
+| `/recursos` | Recursos y Mercado Laboral |
+| `/contacto` | Contacto (3 campus) |
+
+## Dónde cambiar cosas
+
+- **Enlaces externos** (Conecta UP, observatorio, tutoriales): `src/data/sitio.ts` → `ENLACES`.
+  Un enlace en `null` muestra el botón como "próximamente".
+- **Cifras y datos de campus:** `src/data/sitio.ts`.
+- **Eventos:** `src/data/eventos.ts`. Solo "Feria de Empleo UP 2026" viene del documento; el resto tiene `esEjemplo: true`.
+- **Testimonios y guías:** `src/data/contenido.ts` (pendientes del cliente).
+
+## Pasar a datos reales (siguiente fase)
+
+Los tipos de `src/data/tipos.ts` (`Evento`, `Testimonio`, `Recurso`, `Cifra`) están pensados
+para convertirse en entidades de TypeORM. Cuando existan los endpoints en NestJS,
+se reemplaza el import estático por `apiGet<Evento[]>('/eventos')` desde `src/lib/api.ts`.
+
+## Pendientes de marca
+
+- Logo oficial de Career Services (hoy: `LogoProvisional` en `components/Marca.tsx`).
+- Licencias web de Laurentian y Seravek (hoy: Source Serif 4 y Source Sans 3).
+- Fotografías reales de la comunidad UP (hoy: `FotoProvisional`).

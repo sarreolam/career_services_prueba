@@ -1,3 +1,10 @@
+# Entorno de DESARROLLO.
+# Levanta todo con:  docker compose up --build
+#
+# Tres contenedores en una red privada. Dentro de esa red, los servicios
+# se llaman entre si por su NOMBRE (db, backend), no por localhost.
+# El navegador, que vive fuera de Docker, si usa localhost.
+
 services:
   db:
     image: postgres:16-alpine
@@ -8,14 +15,20 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      # Expuesto para poder conectar DBeaver o TablePlus desde tu maquina.
+      - "${DB_PUERTO_LOCAL:-5432}:5432"
     volumes:
+      # Volumen nombrado: aqui viven los datos y SOBREVIVEN a docker compose down.
+      # Solo se borran con `docker compose down -v`.
       - pgdata:/var/lib/postgresql/data
     healthcheck:
+      # El backend espera a que este healthcheck pase antes de arrancar.
+      # Sin esto intenta conectarse cuando Postgres esta encendido pero
+      # todavia no acepta consultas, y falla.
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   backend:
     build:
@@ -24,10 +37,20 @@ services:
     container_name: cs_backend
     restart: unless-stopped
     env_file: .env
+    environment:
+      # Dentro de la red de Docker, Postgres se llama "db".
+      # Esto pisa cualquier DB_HOST del .env, que es util cuando alguien
+      # tiene DB_HOST=localhost para correr el backend fuera de Docker.
+      DB_HOST: db
+      DB_PORT: 5432
     ports:
-      - "3000:3000"
+      - "${BACKEND_PUERTO:-3000}:3000"
     volumes:
+      # Tu codigo local se monta dentro del contenedor: al guardar un
+      # archivo, el servidor se reinicia solo.
       - ./backend:/app
+      # Este volumen anonimo protege los node_modules del contenedor de
+      # ser pisados por los de tu maquina (compilados para otro sistema).
       - /app/node_modules
     depends_on:
       db:
@@ -40,7 +63,7 @@ services:
     container_name: cs_frontend
     restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PUERTO:-5173}:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
